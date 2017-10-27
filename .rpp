@@ -3,9 +3,33 @@
 # 									rperre's PROMPT
 # This should be included on your bash profile script
 #
+get_git() {
+	GITBRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+	if [ "$GITBRANCH" != "" ]
+	then
+		# Its a GIT folder
+
+		# Get untacked files
+		UNTRACKED=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
+
+		# Get modified files
+		MODIFIED=`git ls-files -m 2> /dev/null | wc -l`
+
+		# Get GIT name
+		GITNAME="$(basename `pwd`)"
+
+		echo "\033[01;32m\]{$GITNAME/$GITBRANCH} \033[00m\]Modifed:\033[01;31m\]$MODIFIED \033[00m\]Untracked:\033[01;31m\]$UNTRACKED\033[00m\]\n\033[00;33m\][G]\[\033[00m\][$USER@$HOST]\[\033[00m\]$ "
+
+	else
+		# Its NOT a GIT folder
+		echo "\033[01;32m\][L]\[\033[00m\][$USER@$HOST]\[\033[00m\]$ "
+	fi
+}
 
 
 git_branch () { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'; }
+
+PREFIX=""
 
 up_output() {
 	O=""
