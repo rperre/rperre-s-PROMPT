@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# 									rperre's PROMPT
+# This should be included on your bash profile script
+#
+
+
+git_branch () { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'; }
+
+up_output() {
+	O=""
+	M=`git ls-files -m 2> /dev/null | wc -l`
+	U=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
+	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+	if [ "$B" != "" ]
+	then
+	       O="Branch: $B"
+	fi
+
+	U=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
+	if [ "$U" -gt "0" ]
+	then
+		O="$O | Untracked:$U"
+	fi
+
+	M=`git ls-files -m 2> /dev/null | wc -l`
+	if [ "$M" -gt "0" ]
+	then
+		O="$O | Modified:$M"
+	fi
+
+	if [ "$O" != "" ]
+	then
+		A=$(basename `pwd`)
+		echo "{$A} - $O"
+		echo '[G]'
+	else
+		echo '[L]'
+	fi
+
+}
+
+HOST='\033[02;36m\]\h';
+#TIME='\033[01;31m\]\t \033[01;32m\]'
+LOCATION=' \033[01;34m\]`pwd | sed "s#\(/[^/]\{1,\}/[^/]\{1,\}/[^/]\{1,\}/\).*\(/[^/]\{1,\}/[^/]\{1,\}\)/\{0,1\}#\1_\2#g"`'
+BRANCH='\033[00;33m\]$(up_output)\[\033[00m\]\'
+
+
+PS1="$BRANCH[[$USER@$HOST\[\033[00m\]]$ "
