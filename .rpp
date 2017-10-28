@@ -5,63 +5,73 @@
 #
 
 branch() {
-	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-	if [ "$B" != "" ]
-	then
-		echo "{$(basename `pwd`)/${B//[[:blank:]]/}}"
-	fi
-
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+		B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+		P=$(basename `git rev-parse --show-toplevel 2> /dev/null`) 2> /dev/null
+		echo "{$P/${B//[[:blank:]]/}}"	
+	fi;
 }
 
 modified() {
-	M=`git ls-files -m 2> /dev/null | wc -l`
-	if [ "$M" -gt "0" ]
-	then
-
-		echo " M:${M//[[:blank:]]/}"
-	fi
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+		M=`git ls-files -m 2> /dev/null | wc -l`
+		if [ "$M" -gt "0" ]; then
+			echo " M:${M//[[:blank:]]/}"
+		fi;
+	fi;
 }
 
 untracked() {
-	U=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
-	if [ "$U" -gt "0" ]
-	then
-		echo " U:${U//[[:blank:]]/}"
-	fi
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+		U=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
+		if [ "$U" -gt "0" ]; then
+			echo " U:${U//[[:blank:]]/}"
+		fi;
+	fi;
 }
 
 
 git_folder() {
-	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-	if [ "$B" != "" ]
-	then
-		echo ""
-		echo "[G]"
-	fi
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+		B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+		if [ "$B" != "" ]; then
+			echo ""
+			echo "[G]"
+		fi;
+	fi;
 }
 
 normal_folder() {
-	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-	if [ "$B" = "" ]
-	then
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  = "" ]; then
 		echo "[L]"
-	fi	
+	fi;
 }
 
 staged() {
-	S=`git diff --cached --numstat 2> /dev/null | wc -l`
-	if [ "$S" -gt "0" ]
-	then
-		echo " S:${S//[[:blank:]]/}"
-	fi
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+		S=`git diff --cached --numstat 2> /dev/null | wc -l`
+		if [ "$S" -gt "0" ]; then
+			echo " S:${S//[[:blank:]]/}"
+		fi;
+	fi;
 }
 
-uncommited() {
-	S=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
-	if [ "$S" -gt "0" ]
-	then
-		echo " NEEDS PUSH!(${S//[[:blank:]]/})"
-	fi	
+unpushed() {
+	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+		S=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
+		if [ "$S" -gt "0" ]; then
+			echo " NEEDS PUSH!(${S//[[:blank:]]/})"
+		fi;
+	fi;
+}
+
+uptodate() {
+	# needs pull check
+	echo ""	
+}
+
+current_folder() {
+	echo "../$(basename `pwd`)"
 }
 
 A='$(branch)'
@@ -70,7 +80,8 @@ C='$(untracked)'
 D='$(git_folder)'
 E='$(normal_folder)'
 F='$(staged)'
-G='$(uncommited)'
+G='$(unpushed)'
+H='$(current_folder)'
 
 SH_RESET="\e[0m"
 
@@ -91,6 +102,7 @@ GITFOLDER_COLOR="$SH_YELLOW"
 NORMALFOLDER_COLOR="$SH_GREEN"
 STAGED_COLOR="$SH_GREEN"
 UNPUSHED_COLOR="$SH_RED"
+UPTODATE_COLOR="$SH_GREEN"
 
-PS1="${BRANCH_COLOR}$A${MODIFIED_COLOR}$B${UNTRACKED_COLOR}$C${STAGED_COLOR}$F${UNPUSHED_COLOR}$G${GITFOLDER_COLOR}$D${NORMALFOLDER_COLOR}$E${SH_WHITE}[$USER]$ ${SH_RESET}"
+PS1="${BRANCH_COLOR}$A${MODIFIED_COLOR}$B${UNTRACKED_COLOR}$C${STAGED_COLOR}$F${UNPUSHED_COLOR}$G${GITFOLDER_COLOR}$D${NORMALFOLDER_COLOR}$E${SH_WHITE}[$H]$ ${SH_RESET}"
 
