@@ -4,101 +4,89 @@
 # This should be included on your bash profile script
 #
 
-branch() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-		P=$(basename `git rev-parse --show-toplevel 2> /dev/null`) 2> /dev/null
-		echo "{$P/${B//[[:blank:]]/}}"
-	fi;
-}
+# Function to generate PS1 after CMDs
+PROMPT_COMMAND=__prompt_command
 
-modified() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		M=`git ls-files -m 2> /dev/null | wc -l`
-		if [ "$M" -gt "0" ]; then
-			echo " M:${M//[[:blank:]]/}"
+__prompt_command() {
+		# This needs to be first
+    local EXIT="$?"
+
+    PS1=""
+
+		### Colors to Vars ### {{{
+		## Inspired by http://wiki.archlinux.org/index.php/Color_Bash_Prompt#List_of_colors_for_prompt_and_Bash
+		## Terminal Control Escape Sequences: http://www.termsys.demon.co.uk/vtansi.htm
+		## Consider using some of: https://gist.github.com/bcap/5682077#file-terminal-control-sh
+		## Can unset with `unset -v {,B,U,I,BI,On_,On_I}{Bla,Red,Gre,Yel,Blu,Pur,Cya,Whi} RCol`
+		local RCol='\[\e[0m\]'	# Text Reset
+
+		# Regular                    Bold                          Underline                     High Intensity                BoldHigh Intensity             Background                High Intensity Backgrounds
+		local Bla='\[\e[0;30m\]';    local BBla='\[\e[1;30m\]';    local UBla='\[\e[4;30m\]';    local IBla='\[\e[0;90m\]';    local BIBla='\[\e[1;90m\]';    local On_Bla='\e[40m';    local On_IBla='\[\e[0;100m\]';
+		local Red='\[\e[0;31m\]';    local BRed='\[\e[1;31m\]';    local URed='\[\e[4;31m\]';    local IRed='\[\e[0;91m\]';    local BIRed='\[\e[1;91m\]';    local On_Red='\e[41m';    local On_IRed='\[\e[0;101m\]';
+		local Gre='\[\e[0;32m\]';    local BGre='\[\e[1;32m\]';    local UGre='\[\e[4;32m\]';    local IGre='\[\e[0;92m\]';    local BIGre='\[\e[1;92m\]';    local On_Gre='\e[42m';    local On_IGre='\[\e[0;102m\]';
+		local Yel='\[\e[0;33m\]';    local BYel='\[\e[1;33m\]';    local UYel='\[\e[4;33m\]';    local IYel='\[\e[0;93m\]';    local BIYel='\[\e[1;93m\]';    local On_Yel='\e[43m';    local On_IYel='\[\e[0;103m\]';
+		local Blu='\[\e[0;34m\]';    local BBlu='\[\e[1;34m\]';    local UBlu='\[\e[4;34m\]';    local IBlu='\[\e[0;94m\]';    local BIBlu='\[\e[1;94m\]';    local On_Blu='\e[44m';    local On_IBlu='\[\e[0;104m\]';
+		local Pur='\[\e[0;35m\]';    local BPur='\[\e[1;35m\]';    local UPur='\[\e[4;35m\]';    local IPur='\[\e[0;95m\]';    local BIPur='\[\e[1;95m\]';    local On_Pur='\e[45m';    local On_IPur='\[\e[0;105m\]';
+		local Cya='\[\e[0;36m\]';    local BCya='\[\e[1;36m\]';    local UCya='\[\e[4;36m\]';    local ICya='\[\e[0;96m\]';    local BICya='\[\e[1;96m\]';    local On_Cya='\e[46m';    local On_ICya='\[\e[0;106m\]';
+		local Whi='\[\e[0;37m\]';    local BWhi='\[\e[1;37m\]';    local UWhi='\[\e[4;37m\]';    local IWhi='\[\e[0;97m\]';    local BIWhi='\[\e[1;97m\]';    local On_Whi='\e[47m';    local On_IWhi='\[\e[0;107m\]';
+		### End Color Vars ### }}}
+
+		# Checks for git folder
+		if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
+			local isGit=true
+		else
+			local isGit=false
 		fi;
-	fi;
-}
 
-untracked() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		U=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
-		if [ "$U" -gt "0" ]; then
-			echo " U:${U//[[:blank:]]/}"
+		if [ "$isGit" = true ]; then
+			local branch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+			local foldername=$(basename `git rev-parse --show-toplevel 2> /dev/null`) 2> /dev/null
+			local modified=`git ls-files -m 2> /dev/null | wc -l`
+			local untracked=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
+			local staged=`git diff --cached --numstat 2> /dev/null | wc -l`
+			local npushed=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
+
+			# Choose branch color
+			if [ "$branch" = "master" ]; then
+				BCOLOR="${URed}"
+			else
+				BCOLOR="${Cya}"
+			fi;
+
+			PS1+="${RCol}{${BBlu}$foldername${RCol}/${BCOLOR}${branch//[[:blank:]]/}${RCol}} "
+
+			if [ "$modified" -gt "0" ]; then
+				PS1+="M:${BYel}${modified//[[:blank:]]/}${RCol} "
+			fi;
+
+			if [ "$untracked" -gt "0" ]; then
+				PS1+="U:${BYel}${untracked//[[:blank:]]/}${RCol} "
+			fi;
+
+			if [ "$staged" -gt "0" ]; then
+				PS1+="S:${BGre}${staged//[[:blank:]]/}${RCol} "
+			fi;
+
+			if [ "$npushed" -gt "0" ]; then
+				PS1+="${Cya}Uncommitted(${BRed}${npushed//[[:blank:]]/}${Cya})${RCol} "
+			fi;
+
+			PS1+="\n"
 		fi;
-	fi;
-}
 
+		currentPath=`pwd`
 
-git_folder() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		echo ""
-		echo "[G]"
-	fi;
-}
-
-normal_folder() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  = "" ]; then
-		echo "[L]"
-	fi;
-}
-
-staged() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		S=`git diff --cached --numstat 2> /dev/null | wc -l`
-		if [ "$S" -gt "0" ]; then
-			echo " S:${S//[[:blank:]]/}"
+		if [ "$(echo -n $currentPath | wc -m)" -gt "15" ]; then
+			PS1+="..${currentPath: -15}"
+		else
+			PS1+="$currentPath"
 		fi;
-	fi;
+
+		if [ $EXIT != 0 ]; then
+				# Add red if exit code non 0
+        PS1+="${Red} $ ${RCol}"
+    else
+				# Add green if exit code non 0
+        PS1+="${Gre} $ ${RCol}"
+    fi
 }
-
-unpushed() {
-	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		S=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
-		if [ "$S" -gt "0" ]; then
-			echo " NEEDS PUSH!(${S//[[:blank:]]/})"
-		fi;
-	fi;
-}
-
-uptodate() {
-	# needs pull check
-	echo ""
-}
-
-current_folder() {
-	echo "../$(basename `pwd`)"
-}
-
-A='$(branch)'
-B='$(modified)'
-C='$(untracked)'
-D='$(git_folder)'
-E='$(normal_folder)'
-F='$(staged)'
-G='$(unpushed)'
-H='$(current_folder)'
-
-SH_RESET="\e[0m"
-
-SH_WHITE="\[\033[1;37m\]"
-SH_BLUE="\[\033[1;34m\]"
-SH_RED="\[\033[1;31m\]"
-SH_GREEN="\[\033[1;32m\]"
-SH_YELLOW="\[\033[1;33m\]"
-
-BL_ANGLE="\342\224\224"
-TL_ANGLE="\342\224\214"
-HORIZ_LINE="\342\224\200"
-
-BRANCH_COLOR="$SH_BLUE"
-MODIFIED_COLOR="$SH_YELLOW"
-UNTRACKED_COLOR="$SH_YELLOW"
-GITFOLDER_COLOR="$SH_YELLOW"
-NORMALFOLDER_COLOR="$SH_GREEN"
-STAGED_COLOR="$SH_GREEN"
-UNPUSHED_COLOR="$SH_RED"
-UPTODATE_COLOR="$SH_GREEN"
-
-PS1="${BRANCH_COLOR}$A${MODIFIED_COLOR}$B${UNTRACKED_COLOR}$C${STAGED_COLOR}$F${UNPUSHED_COLOR}$G${GITFOLDER_COLOR}$D${NORMALFOLDER_COLOR}$E${SH_WHITE}[$H]$ ${SH_RESET}"
