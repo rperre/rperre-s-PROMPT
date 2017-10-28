@@ -100,3 +100,5 @@ __prompt_command() {
         PS1+="${Gre} $ ${RCol}"
     fi
 }
+echo -e "✪ Loaded rprompt `cat ~/.rprompt/VERSION` \033[0m"
+echo -e "`uptime` `date` "
