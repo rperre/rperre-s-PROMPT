@@ -55,6 +55,20 @@ __prompt_command() {
 
 			PS1+="${RCol}{${BBlu}$foldername${RCol}/${BCOLOR}${branch//[[:blank:]]/}${RCol}} "
 
+			UPSTREAM=${1:-'@{u}'}
+			LOCAL=$(git rev-parse @)
+			REMOTE=$(git rev-parse "$UPSTREAM")
+			BASE=$(git merge-base @ "$UPSTREAM")
+
+			if [ $LOCAL = $REMOTE ]; then
+			    PS1+="${Gre}Up-to-date${RCol} "
+			elif [ $LOCAL = $BASE ]; then
+			    PS1+="${Red}Need to pull${RCol} "
+			elif [ $REMOTE = $BASE ]; then
+					PS1+="${Cya}Need to push(${BRed}${npushed//[[:blank:]]/}${Cya})${RCol} "
+			else
+			    PS1+="${On_Red}Diverged${RCol} "
+			fi
 			if [ "$modified" -gt "0" ]; then
 				PS1+="M:${BYel}${modified//[[:blank:]]/}${RCol} "
 			fi;
@@ -67,17 +81,13 @@ __prompt_command() {
 				PS1+="S:${BGre}${staged//[[:blank:]]/}${RCol} "
 			fi;
 
-			if [ "$npushed" -gt "0" ]; then
-				PS1+="${Cya}Uncommitted(${BRed}${npushed//[[:blank:]]/}${Cya})${RCol} "
-			fi;
-
 			PS1+="\n"
 		fi;
 
 		currentPath=`pwd`
 
-		if [ "$(echo -n $currentPath | wc -m)" -gt "15" ]; then
-			PS1+="..${currentPath: -15}"
+		if [ "$(echo -n $currentPath | wc -m)" -gt "20" ]; then
+			PS1+="..${currentPath: -20}"
 		else
 			PS1+="$currentPath"
 		fi;
