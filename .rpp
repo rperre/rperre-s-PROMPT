@@ -4,9 +4,7 @@
 # This should be included on your bash profile script
 #
 
-
-
-one() {
+branch() {
 	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 	if [ "$B" != "" ]
 	then
@@ -15,7 +13,7 @@ one() {
 
 }
 
-two() {
+modified() {
 	M=`git ls-files -m 2> /dev/null | wc -l`
 	if [ "$M" -gt "0" ]
 	then
@@ -24,7 +22,7 @@ two() {
 	fi
 }
 
-three() {
+untracked() {
 	U=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
 	if [ "$U" -gt "0" ]
 	then
@@ -33,7 +31,7 @@ three() {
 }
 
 
-four() {
+git_folder() {
 	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 	if [ "$B" != "" ]
 	then
@@ -42,7 +40,7 @@ four() {
 	fi
 }
 
-five() {
+normal_folder() {
 	B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 	if [ "$B" = "" ]
 	then
@@ -50,28 +48,34 @@ five() {
 	fi	
 }
 
-six() {
-	S=`git diff --cached --numstat | wc -l`
+staged() {
+	S=`git diff --cached --numstat 2> /dev/null | wc -l`
 	if [ "$S" -gt "0" ]
 	then
 		echo " S:${S//[[:blank:]]/}"
 	fi
 }
 
-HOST='\033[02;36m\]\h';
+uncommited() {
+	S=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
+	if [ "$S" -gt "0" ]
+	then
+		echo " NEEDS PUSH!(${S//[[:blank:]]/})"
+	fi	
+}
 
-
-A='$(one)'
-B='$(two)'
-C='$(three)'
-D='$(four)'
-E='$(five)'
-F='$(six)'
+A='$(branch)'
+B='$(modified)'
+C='$(untracked)'
+D='$(git_folder)'
+E='$(normal_folder)'
+F='$(staged)'
+G='$(uncommited)'
 
 SH_RESET="\e[0m"
 
 SH_WHITE="\[\033[1;37m\]"
-SH_BLUE="\[\033[3;34m\]"
+SH_BLUE="\[\033[1;34m\]"
 SH_RED="\[\033[1;31m\]"
 SH_GREEN="\[\033[1;32m\]"
 SH_YELLOW="\[\033[1;33m\]"
@@ -80,21 +84,13 @@ BL_ANGLE="\342\224\224"
 TL_ANGLE="\342\224\214"
 HORIZ_LINE="\342\224\200"
 
-BRANCH_COLOR="\[\033[1;34m\]"
-MODIFIED_COLOR="\[\033[1;31m\]"
-UNTRACKED_COLOR="\[\033[1;31m\]"
-GITFOLDER_COLOR="\[\033[1;33m\]"
-NORMALFOLDER_COLOR="\[\033[1;32m\]"
-STAGED_COLOR="\[\033[1;32m\]"
+BRANCH_COLOR="$SH_BLUE"
+MODIFIED_COLOR="$SH_YELLOW"
+UNTRACKED_COLOR="$SH_YELLOW"
+GITFOLDER_COLOR="$SH_YELLOW"
+NORMALFOLDER_COLOR="$SH_GREEN"
+STAGED_COLOR="$SH_GREEN"
+UNPUSHED_COLOR="$SH_RED"
 
-PS1="${BRANCH_COLOR}$A${MODIFIED_COLOR}$B${UNTRACKED_COLOR}$C${STAGED_COLOR}$F${GITFOLDER_COLOR}$D${NORMALFOLDER_COLOR}$E${SH_WHITE}[$USER]$ ${SH_RESET}"
+PS1="${BRANCH_COLOR}$A${MODIFIED_COLOR}$B${UNTRACKED_COLOR}$C${STAGED_COLOR}$F${UNPUSHED_COLOR}$G${GITFOLDER_COLOR}$D${NORMALFOLDER_COLOR}$E${SH_WHITE}[$USER]$ ${SH_RESET}"
 
-
-
-
-
-
-
-
-
-###
