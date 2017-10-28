@@ -8,7 +8,7 @@ branch() {
 	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
 		B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 		P=$(basename `git rev-parse --show-toplevel 2> /dev/null`) 2> /dev/null
-		echo "{$P/${B//[[:blank:]]/}}"	
+		echo "{$P/${B//[[:blank:]]/}}"
 	fi;
 }
 
@@ -33,11 +33,8 @@ untracked() {
 
 git_folder() {
 	if [ "$(echo `git rev-parse --git-dir 2> /dev/null;`)"  != "" ]; then
-		B=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-		if [ "$B" != "" ]; then
-			echo ""
-			echo "[G]"
-		fi;
+		echo ""
+		echo "[G]"
 	fi;
 }
 
@@ -67,7 +64,7 @@ unpushed() {
 
 uptodate() {
 	# needs pull check
-	echo ""	
+	echo ""
 }
 
 current_folder() {
@@ -105,4 +102,3 @@ UNPUSHED_COLOR="$SH_RED"
 UPTODATE_COLOR="$SH_GREEN"
 
 PS1="${BRANCH_COLOR}$A${MODIFIED_COLOR}$B${UNTRACKED_COLOR}$C${STAGED_COLOR}$F${UNPUSHED_COLOR}$G${GITFOLDER_COLOR}$D${NORMALFOLDER_COLOR}$E${SH_WHITE}[$H]$ ${SH_RESET}"
-
