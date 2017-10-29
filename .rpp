@@ -38,13 +38,23 @@ __prompt_command() {
 			local isGit=false
 		fi;
 
+    newline=false
 		if [ "$isGit" = true ]; then
-			local branch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-			local foldername=$(basename `git rev-parse --show-toplevel 2> /dev/null`) 2> /dev/null
-			local modified=`git ls-files -m 2> /dev/null | wc -l`
-			local untracked=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
-			local staged=`git diff --cached --numstat 2> /dev/null | wc -l`
-			local npushed=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
+			branch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+
+			modified=`git ls-files -m 2> /dev/null | wc -l`
+			untracked=`git ls-files --others --exclude-standard 2> /dev/null | wc -l`
+			staged=`git diff --cached --numstat 2> /dev/null | wc -l`
+			npushed=`git log --branches --not --remotes 2> /dev/null | grep "commit "| wc -l`
+
+      currentPath=`pwd`
+
+      if [ "$(basename $currentPath)" = ".git" ]; then
+        currentPath="$(dirname $currentPath)"
+        currentPath="$(basename $currentPath)"
+      else
+        foldername=$(basename `git rev-parse --show-toplevel` 2>/dev/null)
+      fi;
 
 			# Choose branch color
 			if [ "$branch" = "master" ]; then
@@ -69,6 +79,7 @@ __prompt_command() {
 			else
 			    PS1+="${On_Red}Diverged${RCol} "
 			fi
+
 			if [ "$modified" -gt "0" ]; then
 				PS1+="M:${BYel}${modified//[[:blank:]]/}${RCol} "
 			fi;
@@ -81,24 +92,55 @@ __prompt_command() {
 				PS1+="S:${BGre}${staged//[[:blank:]]/}${RCol} "
 			fi;
 
-			PS1+="\n"
+      newline=true
 		fi;
+
+    gemcount=`cat Gemfile 2>/dev/null | grep "gem '" | grep -v "#" | wc -l`
+
+
+    if [ "$gemcount" -gt "0" ]; then
+
+      gemset=`cat .ruby-gemset 2>/dev/null`
+
+      if [ "$gemset" = "" ];then
+        gemcolor="${Red}"
+        gemset="N/A"
+      else
+        gemcolor="${BPur}"
+      fi;
+
+      rubyversion=`cat .ruby-version 2>/dev/null`
+
+      PS1+="[${gemcolor}${gemset//[[:blank:]]/}${RCol}:${gemcount//[[:blank:]]/}💎  ${Cya}$rubyversion${RCol}]"
+
+      # too slow
+      # check="$(bundle check | grep 'bundle install')"
+      # if [ "$check" != "" ]; then
+      #   PS1+=" ${Red}bundle install!${RCol}"
+      # fi;
+
+      newline=true
+    fi;
+
+    if [ "$isGit" = true ]; then
+      PS1+="\n"
+    fi;
 
 		currentPath=`pwd`
 
 		if [ "$(echo -n $currentPath | wc -m)" -gt "20" ]; then
-			PS1+="..${currentPath: -20}"
+      D2=$(dirname $currentPath)
+      currentPath=$(basename $D2 2>/dev/null)/$(basename $currentPath 2>/dev/null)
+      PS1+="$currentPath"
 		else
 			PS1+="$currentPath"
 		fi;
 
 		if [ $EXIT != 0 ]; then
-				# Add red if exit code non 0
         PS1+="${Red} $ ${RCol}"
     else
-				# Add green if exit code non 0
         PS1+="${Gre} $ ${RCol}"
     fi
 }
-echo -e "✪ Loaded rprompt `cat ~/.rprompt/VERSION` \033[0m"
-echo -e "`uptime` `date` "
+#echo -e "✪ Loaded rprompt `cat ~/.rprompt/VERSION`"
+echo -e "\033[2m✪ `uptime` \033[0m"
