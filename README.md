@@ -14,10 +14,11 @@ As it is it's not bad I'm using it in my day-to-day actually, but still needs a 
 ### RUBY
 #### bund
 Run `bund` to do a `bundle check` and `bundle install` if your gems are out of date
+
 Examples:
 ![bund when up to date](https://i.imgur.com/h3cl4vM.png)
 ![bund when gem is updated](https://i.imgur.com/YcIpvKB.png)
-
+![bund when gem is installed](https://i.imgur.com/HDoxwd6.png)
 
 ## Upper line information
 ### GIT
