@@ -9,8 +9,9 @@ bash prompt
 ### RUBY
 #### bund
 Run `bund` to do a `bundle check` and `bundle install` if your gems are out of date
+Examples:
+![bund when up to date](https://imgur.com/a/BHscd)
 
-![](https://imgur.com/a/BHscd)
 
 ## Upper line information
 ### GIT
